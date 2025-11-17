@@ -1,0 +1,89 @@
+flowchart TB
+
+%% ============================
+%% SECTION: USERS
+%% ============================
+user([Business User<br/>Non-technical]) --> UI
+
+%% ============================
+%% SECTION: STREAMLIT UI
+%% ============================
+subgraph UI[Streamlit Web UI]
+    Q[User Question<br/>(Natural Language)]
+    GenBtn[[Generate SQL]]
+    RunBtn[[Run SQL]]
+    PandasAIBtn[[Analyze with PandasAI]]
+
+    Q --> GenBtn
+    GenBtn --> DisplaySQL[Display Generated SQL]
+    
+    DisplaySQL --> RunBtn
+    RunBtn --> DisplayResults[Render DataFrame]
+
+    DisplayResults --> PandasAIBtn
+    PandasAIBtn --> DisplayAnalysis[PandasAI Result<br/>(text/plot/table)]
+end
+
+%% ============================
+%% SECTION: BACKEND LOGIC
+%% ============================
+subgraph BE[NL→SQL Engine & Execution Layer (Python)]
+    
+    %% LLM
+    subgraph LLM[LLM Layer<br/>Azure OpenAI]
+        Prompt[Structured Prompt<br/>+ Schema Injection]
+        LLMGen[LLM Model<br/>(GPT-4o mini)]
+        CleanSQL[Clean Output<br/>Remove Code Fences]
+        
+        Prompt --> LLMGen --> CleanSQL
+    end
+
+    %% SQL Validator
+    subgraph VAL[SQL Guardrails]
+        Single[Check Single Statement]
+        SelectOnly[Ensure SELECT-only]
+        Blocklist[Forbidden Keywords]
+        AddLimit[Force LIMIT]
+        Single --> SelectOnly --> Blocklist --> AddLimit
+    end
+    
+    %% Schema Reflection
+    subgraph SCHEMA[Schema Reflection<br/>SQLAlchemy Inspect]
+        InspectDB[Reflect Tables & Columns]
+    end
+    
+    %% PandasAI
+    subgraph PAI[PandasAI Analysis Layer]
+        PrepareEnv[Prepare Azure OpenAI Env]
+        SmartDF[SmartDataframe.chat()]
+        PrepareEnv --> SmartDF
+    end
+
+end
+
+%% ============================
+%% SECTION: DATABASE
+%% ============================
+subgraph DB[(PostgreSQL)]
+    Tables[(User Tables)]
+end
+
+%% ============================
+%% CONNECTIONS
+%% ============================
+GenBtn --> BE
+RunBtn --> BE
+
+BE --> InspectDB
+InspectDB --> Prompt
+
+CleanSQL --> VAL
+VAL --> ExecSQL[Execute Safe SQL<br/>Read-Only Connection]
+
+ExecSQL --> Tables
+ExecSQL --> ResultsDF[Return DataFrame]
+
+ResultsDF --> DisplayResults
+ResultsDF --> PAI
+
+SmartDF --> DisplayAnalysis

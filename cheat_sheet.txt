@@ -1,0 +1,18 @@
+Install poetry: (via PowerShell)
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+
+Create poetry environment:
+poetry new nl2sql
+
+Activate poetry environment:
+cd nl2sql
+poetry env activate
+
+Initialize poetry environment:
+poetry install
+
+List of poetry environments:
+poetry env list
+
+Remove poetry environment:
+poetry env remove <env_name?>
