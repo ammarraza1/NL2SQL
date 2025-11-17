@@ -1,4 +1,4 @@
-# 🧠 Natural Language SQL Query Assistant edited by 002 and 004
+# 🧠 Natural Language SQL Query Assistant edited by 002 then 004 then 001
 ### Query Postgres using English. Powered by Azure OpenAI + Streamlit + PandasAI.
 
 ---
